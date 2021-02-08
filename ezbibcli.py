@@ -10,8 +10,7 @@ bfind = s.get("https://www.easybib.com/api/auth/token?client=cfe", headers={
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.146 Safari/537.36"
 })
 bearer = re.search('jwt\":\"(.*?)\"', bfind.text)[1]
-print(bearer)
-input()
+
 cP = "https://bff.writing.chegg.com/graphql"
 headersCP = {
     "accept": "*/*",
@@ -37,7 +36,6 @@ def createProj():
     data = {"operationName":"FoldersCreateProject","variables":{"folderId":None,"name":"EZBibCiter","defaultStyle":"mla8","public":True},"query":"mutation FoldersCreateProject($name: String!, $public: Boolean!, $defaultStyle: String!, $folderId: Int = null) {\n  createProject(name: $name, public: $public, defaultStyle: $defaultStyle, folderId: $folderId) {\n    id\n    name\n    defaultStyle\n    date: updatedAt\n    public\n    __typename\n  }\n}\n"}
     cPR = s.post(cP, headers=headersCP, data=json.dumps(data))
     ped = json.loads(cPR.text)
-    print(ped)
     bruh = (ped['data']['createProject']['id'])
     return bruh
 
@@ -225,7 +223,8 @@ def textfile(tpath):
         for i in filepath:
             links.append(i.rstrip())
     for letsgo in links:
-        singler = s.get(letsgo, headers=headersMain, timeout=3)
+        multilink = f"https://autocite.citation-api.com/api/v3/query?url={letsgo}"
+        singler = s.get(multilink, headers=headersMain, timeout=3)
         try:
             score = re.search('score\":(.*?),', singler.text)[1]
         except:
@@ -394,7 +393,7 @@ def textfile(tpath):
             else:
                 pass
         print(f"\nUpdated Citations:\n{checklist}\n")
-        data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":l1,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
+        data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":letsgo,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
         cSC = s.post(cP, headers=headersCP, data=json.dumps(data2))
 
     data3 = {"operationName":"Citationcount","variables":{"projectId":projID},"query":"query Citationcount($projectId: String!) {\n  citationCount(projectId: $projectId) {\n    count\n    __typename\n  }\n}\n"}
