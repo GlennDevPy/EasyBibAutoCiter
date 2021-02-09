@@ -1,9 +1,13 @@
 import requests
 import json
 import re
+import os
 
-safeM = True
+
 s = requests.Session()
+
+
+os.system('cls')
 
 bfind = s.get("https://www.easybib.com/api/auth/token?client=cfe", headers={
     "accept": "application/json",
@@ -42,7 +46,7 @@ def createProj():
 def singleL(l1):
     projID = createProj()
     singlelink = f"https://autocite.citation-api.com/api/v3/query?url={l1}"
-    singler = s.get(singlelink, headers=headersMain, timeout=3)
+    singler = s.get(singlelink, headers=headersMain, timeout=10)
     try:
         score = re.search('score\":(.*?),', singler.text)[1]
     except:
@@ -50,21 +54,29 @@ def singleL(l1):
 
     try:
         title = re.search('title\":\"(.*?)\"', singler.text)[1]
+        if title == '':
+            title = "Missing"
     except:
         title = 'Missing'
 
     try:
         webtitle = re.search('_mediumTitle\":\"(.*?)\"', singler.text)[1]
+        if webtitle == '':
+            webtitle = 'Missing'
     except:
         webtitle = 'Missing'
 
     try:
         authorF = re.search('given\":\"(.*?)\"', singler.text)[1]
+        if authorF == '':
+            authorF = 'Missing'
     except:
         authorF = 'Missing'
 
     try:
         authorL = re.search('family\":\"(.*?)\"', singler.text)[1]
+        if authorL == '':
+            authorL = "Missing"
     except:
         authorL = 'Missing'
 
@@ -94,7 +106,7 @@ def singleL(l1):
     }
 
     tocheck = ['mediumTitleFound', 'contentTitleFound', 'contributorsFound', 'publishedDayFound', 'publishedMonthFound', 'publishedYearFound']
-    
+    print(score)
     #medtitle is website title
     if score == "100":
         print(f"\nCurrent Citation Progress:\n{checklist}\n")
@@ -130,7 +142,41 @@ def singleL(l1):
                     break
         else:
             pass
-    else:
+    if "Missing" not in checklist.values():
+        print(f"\nCurrent Citation Progress:\n{checklist}\n")
+        print("Do you want to make any edits? (Y or N)")
+        cedits = input()
+        if cedits.upper() == "Y":
+            while True:
+                print(f"URL: {l1}")
+                print("\nTo which section?\n[1] Title\n[2] Website Title\n[3] Author First\n[4] Author Last\n[5] Day Pub\n[6] Month Pub\n[7] Year Pub\n[8] Done")
+                sectionedit = input()
+                if sectionedit == "1":
+                    print(f'Change title from [{title}] to what?')
+                    title = input()
+                if sectionedit == "2":
+                    print(f'Change website title from [{webtitle}] to what?')
+                    webtitle = input()
+                if sectionedit == "3":
+                    print(f'Change author first name from [{authorF}] to what?')
+                    authorF = input()
+                if sectionedit == "4":
+                    print(f'Change author last name from [{authorL}] to what?')
+                    authorL = input()
+                if sectionedit == "5":
+                    print(f'Change day published to what?')
+                    dD = input()
+                if sectionedit == "6":
+                    print(f'Change month published to what?')
+                    dM = input()
+                if sectionedit == "7":
+                    print(f'Change year published to what?')
+                    dY = input()
+                if sectionedit == "8":
+                    break
+        else:
+            pass      
+    if "Missing" in checklist.values():
         check = []
         for plz in tocheck:
             xPlz = re.search(f'{plz}\":(.*?),\"', singler.text)[1]
@@ -214,7 +260,7 @@ def singleL(l1):
     data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":l1,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
     cSC = s.post(cP, headers=headersCP, data=json.dumps(data2))
     print(cSC.text)
-    #dump this into text or some pdf file
+    #dump this into word doc
 
 def textfile(tpath):
     projID = createProj()
@@ -399,34 +445,20 @@ def textfile(tpath):
     data3 = {"operationName":"Citationcount","variables":{"projectId":projID},"query":"query Citationcount($projectId: String!) {\n  citationCount(projectId: $projectId) {\n    count\n    __typename\n  }\n}\n"}
     cx = s.post(cP, headers=headersCP, data=json.dumps(data3))
     print(cx.text)
+    #get the citations
+    #dump this into word doc
 
 
-print("Welcome to EZBibCiter [beta]")
+print("Welcome to EZBibCiter [beta]\n")
 print("[1] Textfile\n[2] Single Link\n[3] Enter Links Manually")
 choice = input()
 
 if choice == "1":
-    #textfile()
-    """
-    print("\nSafe Mode? (Y or N)")
-    safe = input()
-    if safe.upper() == "Y":
-        safeM = True
-    else:
-        safeM = False
-    pass """
     print("Drag in text file/give path to file")
     txtfile = input()
     textfile(txtfile)
 
 if choice == "2":
-    """ 
-    print("\nSafe Mode? (Y or N)")
-    safe = input()
-    if safe.upper() == "Y":
-        safeM = True
-    else:
-        safeM = False """
     print("\nEnter in the link to cite:")
     xxbru = input()
     singleL(xxbru)
@@ -434,11 +466,3 @@ if choice == "2":
 
 if choice == "3":
     #manual()
-    """ 
-    print("\nSafe Mode? (Y or N)")
-    safe = input()
-    if safe.upper() == "Y":
-        safeM = True
-    else:
-        safeM = False
-    pass """
