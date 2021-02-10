@@ -29,20 +29,18 @@ checklist = {
 
 
 
-import docx
-from docx import Document
-from docx.shared import Inches
-
-document = Document()
 
 #figure out how to do indents lmao
 
 #wont work until i figure out how to do hanging indents
 
 
-document.save('demo.docx') """
+from docx import Document
+from docx.shared import Inches
 
-""" with open("demo.txt", 'a', encoding='UTF-8') as opening:
-    opening.writelines(f'{authorL}, {authorF}. "{title}."') """
+worddoc = Document()
+paragraph = worddoc.add_paragraph('')
+paragraph.paragraph_format.left_indent = Inches(0.5)
+paragraph.paragraph_format.first_line_indent = Inches(-0.5)
+worddoc.save('left_indent.docx')
 
-#wont work until ever lmao

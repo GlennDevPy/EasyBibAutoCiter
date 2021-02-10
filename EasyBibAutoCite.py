@@ -2,11 +2,17 @@ import requests
 import json
 import re
 import os
+from docx import Document
+from docx.shared import Inches
+from time import localtime, strftime
+import codecs
+import calendar
+
+
+
 
 
 s = requests.Session()
-
-
 os.system('cls')
 
 bfind = s.get("https://www.easybib.com/api/auth/token?client=cfe", headers={
@@ -44,6 +50,11 @@ def createProj():
     return bruh
 
 def singleL(l1):
+    worddoc = Document()
+    sections = worddoc.sections
+    for section in sections:
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
     projID = createProj()
     singlelink = f"https://autocite.citation-api.com/api/v3/query?url={l1}"
     singler = s.get(singlelink, headers=headersMain, timeout=10)
@@ -53,7 +64,8 @@ def singleL(l1):
         score = 'Missing'
 
     try:
-        title = re.search('title\":\"(.*?)\"', singler.text)[1]
+        title2 = re.search('title\":\"(.*?)\"', singler.text)[1]
+        title = codecs.decode(title2, 'unicode-escape')
         if title == '':
             title = "Missing"
     except:
@@ -106,7 +118,6 @@ def singleL(l1):
     }
 
     tocheck = ['mediumTitleFound', 'contentTitleFound', 'contributorsFound', 'publishedDayFound', 'publishedMonthFound', 'publishedYearFound']
-    print(score)
     #medtitle is website title
     if score == "100":
         print(f"\nCurrent Citation Progress:\n{checklist}\n")
@@ -142,40 +153,6 @@ def singleL(l1):
                     break
         else:
             pass
-    if "Missing" not in checklist.values():
-        print(f"\nCurrent Citation Progress:\n{checklist}\n")
-        print("Do you want to make any edits? (Y or N)")
-        cedits = input()
-        if cedits.upper() == "Y":
-            while True:
-                print(f"URL: {l1}")
-                print("\nTo which section?\n[1] Title\n[2] Website Title\n[3] Author First\n[4] Author Last\n[5] Day Pub\n[6] Month Pub\n[7] Year Pub\n[8] Done")
-                sectionedit = input()
-                if sectionedit == "1":
-                    print(f'Change title from [{title}] to what?')
-                    title = input()
-                if sectionedit == "2":
-                    print(f'Change website title from [{webtitle}] to what?')
-                    webtitle = input()
-                if sectionedit == "3":
-                    print(f'Change author first name from [{authorF}] to what?')
-                    authorF = input()
-                if sectionedit == "4":
-                    print(f'Change author last name from [{authorL}] to what?')
-                    authorL = input()
-                if sectionedit == "5":
-                    print(f'Change day published to what?')
-                    dD = input()
-                if sectionedit == "6":
-                    print(f'Change month published to what?')
-                    dM = input()
-                if sectionedit == "7":
-                    print(f'Change year published to what?')
-                    dY = input()
-                if sectionedit == "8":
-                    break
-        else:
-            pass      
     if "Missing" in checklist.values():
         check = []
         for plz in tocheck:
@@ -256,13 +233,23 @@ def singleL(l1):
                     break
         else:
             pass
-    print(f"\nUpdated Citations:\n{checklist}\n")
-    data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":l1,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
-    cSC = s.post(cP, headers=headersCP, data=json.dumps(data2))
-    print(cSC.text)
-    #dump this into word doc
+    #print(f"\nUpdated Citations:\n{checklist}\n")
+    #data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":l1,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
+    #cSC = s.post(cP, headers=headersCP, data=json.dumps(data2))
+    #print(cSC.text)
+    dM = dM.replace("0", "")
+    paragraph = worddoc.add_paragraph(f'{authorL}, {authorF}. "{title}." {webtitle}, {dD} {calendar.month_abbr[int(dM)]}. {dY}, {l1}.')
+    paragraph.paragraph_format.left_indent = Inches(0.5)
+    paragraph.paragraph_format.first_line_indent = Inches(-0.5)
+    worddoc.save(f'{strftime("%Y-%m-%d %H.%M.%S", localtime())} Citations.docx')
 
 def textfile(tpath):
+    allcites = []
+    worddoc = Document()
+    sections = worddoc.sections
+    for section in sections:
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
     projID = createProj()
     links = []
     with open(tpath, 'r') as filepath:
@@ -277,7 +264,8 @@ def textfile(tpath):
             score = 'Missing'
 
         try:
-            title = re.search('title\":\"(.*?)\"', singler.text)[1]
+            title2 = re.search('title\":\"(.*?)\"', singler.text)[1]
+            title = codecs.decode(title2, 'unicode-escape')
         except:
             title = 'Missing'
 
@@ -310,6 +298,7 @@ def textfile(tpath):
         dY = re.search('_publishedYear\":\"(.*?)\"', singler.text)[1]
         if dY == '':
             dY = "Missing"
+        
 
         checklist = {
             "title": title,
@@ -319,6 +308,7 @@ def textfile(tpath):
             "dD": dD,
             "dM": dM,
             "dY": dY,
+            'furl': letsgo
         }
 
         tocheck = ['mediumTitleFound', 'contentTitleFound', 'contributorsFound', 'publishedDayFound', 'publishedMonthFound', 'publishedYearFound']
@@ -438,13 +428,31 @@ def textfile(tpath):
                         break
             else:
                 pass
-        print(f"\nUpdated Citations:\n{checklist}\n")
-        data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":letsgo,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
-        cSC = s.post(cP, headers=headersCP, data=json.dumps(data2))
-
-    data3 = {"operationName":"Citationcount","variables":{"projectId":projID},"query":"query Citationcount($projectId: String!) {\n  citationCount(projectId: $projectId) {\n    count\n    __typename\n  }\n}\n"}
-    cx = s.post(cP, headers=headersCP, data=json.dumps(data3))
-    print(cx.text)
+        allcites.append(checklist)
+        #print(f"\nUpdated Citations:\n{checklist}\n")
+        #data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":letsgo,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
+        #cSC = s.post(cP, headers=headersCP, data=json.dumps(data2))
+    sort = []
+    final = []
+    for values in allcites:
+        sort.append(values["authorL"])
+    sort.sort()
+    for values2 in sort:
+        #values 2 = sorted authors
+        for values3 in allcites:
+            #values 3 = original authors
+            if values2 in values3.values():
+                final.append(values3)
+    for outputs in final:
+        outputs['dM'] = outputs['dM'].replace("0", "")
+        paragraph = worddoc.add_paragraph(f"{outputs['authorL']}, {outputs['authorF']}. \"{outputs['title']}.\" {outputs['webtitle']}, {outputs['dD']} {calendar.month_abbr[int(outputs['dM'])]}. {outputs['dY']}, {outputs['furl']}.")
+        paragraph.paragraph_format.left_indent = Inches(0.5)
+        paragraph.paragraph_format.first_line_indent = Inches(-0.5)
+    worddoc.save(f'{strftime("%Y-%m-%d %H.%M.%S", localtime())} Citations.docx')
+    
+    #data3 = {"operationName":"Citationcount","variables":{"projectId":projID},"query":"query Citationcount($projectId: String!) {\n  citationCount(projectId: $projectId) {\n    count\n    __typename\n  }\n}\n"}
+    #cx = s.post(cP, headers=headersCP, data=json.dumps(data3))
+    #print(cx.text)
     #get the citations
     #dump this into word doc
 
@@ -466,3 +474,4 @@ if choice == "2":
 
 if choice == "3":
     #manual()
+    pass
