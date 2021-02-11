@@ -396,6 +396,7 @@ def textfile(tpath):
             "dD": dD,
             "dM": dM,
             "dY": dY,
+            'furl': letsgo
             }
 
             print(f"\nUpdated Citations:\n{checklist}\n")
@@ -431,10 +432,22 @@ def textfile(tpath):
                         break
             else:
                 pass
+        checklist = {
+            "title": title,
+            "webtitle": webtitle,
+            "authorF": authorF,
+            "authorL": authorL,
+            "dD": dD,
+            "dM": dM,
+            "dY": dY,
+            'furl': letsgo
+            }
         allcites.append(checklist)
+
         #print(f"\nUpdated Citations:\n{checklist}\n")
         #data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":letsgo,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
         #cSC = s.post(cP, headers=headersCP, data=json.dumps(data2))
+
     while True:
         print(f"\nCurrent Citation List:\n")
         for index, item in enumerate(allcites, start=1):
@@ -551,6 +564,7 @@ def manual():
             "authorF": authorF,
             "authorL": authorL,
             "dD": dD,
+            
             "dM": dM,
             "dY": dY,
             'furl': letsgo
@@ -638,6 +652,7 @@ def manual():
             "dD": dD,
             "dM": dM,
             "dY": dY,
+            'furl': letsgo
             }
 
             print(f"\nUpdated Citations:\n{checklist}\n")
@@ -673,6 +688,16 @@ def manual():
                         break
             else:
                 pass
+        checklist = {
+            "title": title,
+            "webtitle": webtitle,
+            "authorF": authorF,
+            "authorL": authorL,
+            "dD": dD,
+            "dM": dM,
+            "dY": dY,
+            'furl': letsgo
+        }
         allcites.append(checklist)
         #print(f"\nUpdated Citations:\n{checklist}\n")
         #data2 = {"operationName":"CreateCitation","variables":{"projectId":projID,"contributors":[{"function":"author","first":authorF,"middle":"","last":authorL,"data":{"suffix":""}}],"annotation":"","data":{"source":"website","pubtype":{"main":"pubonline","suffix":""},"website":{"title":title},"pubonline":{"title":webtitle,"inst":"","url":letsgo,"day":dD,"month":dM,"year":dY,"timestamp":""},"annotation":"","validatorStatus":"complete"}},"query":"mutation CreateCitation($projectId: String!, $pubType: String, $sourceType: String, $annotation: String, $contributors: [ContributorInput!], $data: JSON!) {\n  createCitation(projectId: $projectId, pubType: $pubType, sourceType: $sourceType, annotation: $annotation, contributors: $contributors, data: $data) {\n    citationId\n    id: citationId\n    data\n    annotation\n    __typename\n  }\n}\n"}
